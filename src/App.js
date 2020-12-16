@@ -1,12 +1,70 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import './App.css';
 import LineGraph from './components/LineGraph';
 import Card from './components/Card';
+import CovidSummary from './components/CovidSummary';
+import axios from './axios';
 
 function App() {
+
+  const[totalConfirmed, setTotalConfirmed] = useState(0);
+  const[totalRecovered, setTotalRecovered] = useState(0);
+  const[totalDeaths, setTotalDeaths] = useState(0);
+  const[loading, setLoading] = useState(false);
+  const[covidSummary, setCovidSummary] = useState({});
+  
+  //componentDidMount
+  useEffect(() => {
+
+    setLoading(true);
+    //for total us stats
+    axios.get(`/api/us`)
+    .then(res => {
+      setLoading(false);
+
+      if(res.status === 200){
+
+      setTotalConfirmed(res.data[0].positive);
+      setTotalRecovered(res.data[0].recovered);
+      setTotalDeaths(res.data[0].death);
+
+      }
+
+      console.log(res);
+    })
+    .catch(error => {
+      console.log(error)
+    })
+
+  }, []);
+
+   useEffect(() => {
+
+    setLoading(true);
+    //for states state
+    axios.get(`api/states`)
+    .then(res => {
+      setLoading(false);
+
+      if(res.status === 200){
+      setCovidSummary(res.data);
+    }
+
+      console.log(res);
+    })
+    .catch(error => {
+      console.log(error)
+    })
+
+  }, []);
+
+  if(loading){
+    return <p>Fetching data from api...!</p>
+  }
+
   return (
     <div className="App">
-          <nav class="navbar navbar-expand-lg navbar-light bg-light">
+       <nav class="navbar navbar-expand-lg navbar-light bg-light">
   <a class="navbar-brand" href="#">Navbar</a>
   <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>
@@ -41,45 +99,12 @@ function App() {
     </form>
   </div>
 </nav>
-      <div>
-        <div>
-          <h1>Corona Viruses Reports</h1>
-          <div class="input-group">
-  <input type="text" class="form-control" aria-label="Text input with dropdown button"/>
-  <div class="input-group-append">
-    <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">Dropdown</button>
-    <div class="dropdown-menu">
-      <a class="dropdown-item" href="#">Action</a>
-      <a class="dropdown-item" href="#">Another action</a>
-      <a class="dropdown-item" href="#">Something else here</a>
-      <div role="separator" class="dropdown-divider"></div>
-      <a class="dropdown-item" href="#">Separated link</a>
-    </div>
-  </div>
-</div>
-          <div style=
-            {{
-              display: 'flex',
-              justifyContent: 'center'
-            }}>
-              <Card>
-                <span>Total Confirmed Cases</span><br />
-                <span>0</span>
-              </Card>
-
-              <Card>
-                <span>Total Recovered Cases</span><br />
-                <span>0</span>
-              </Card>
-
-              <Card>
-                <span>Total Death Cases</span><br />
-                <span>0</span>
-              </Card>
-          </div>
-
-         </div>
-      </div>
+      <CovidSummary
+        totalConfirmed={totalConfirmed}
+        totalRecovered={totalRecovered}
+        totalDeaths={totalDeaths}
+        state={''}
+      />
       <LineGraph/>
     </div>
   );
